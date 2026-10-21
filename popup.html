@@ -1,0 +1,37 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>StackScope</title>
+  <link rel="stylesheet" href="popup.css">
+</head>
+<body>
+  <header class="top">
+    <img id="favicon" class="favicon" alt="">
+    <div class="site">
+      <div class="label">This site runs on</div>
+      <div id="host" class="host">…</div>
+    </div>
+    <button id="refresh" class="icon-btn" title="Scan again">↻</button>
+  </header>
+
+  <div id="headline" class="headline"></div>
+
+  <main id="sections"></main>
+
+  <footer class="bottom">
+    <label class="toggle">
+      <input type="checkbox" id="evidence">
+      <span>Show how we know</span>
+    </label>
+    <div class="legend">
+      <span class="dot"></span> detected
+      <span class="dot implied"></span> inferred
+    </div>
+  </footer>
+  <div id="source" class="source"></div>
+
+  <script src="rules.js"></script>
+  <script src="popup.js"></script>
+</body>
+</html>
