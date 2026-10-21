@@ -62,7 +62,7 @@ Open any website and click the StackScope icon. Good first tries:
 | [drupal.org](https://www.drupal.org) | Drupal · PHP · Apache |
 | [wix.com](https://www.wix.com) | Wix · React |
 
-> Tabs that were already open *before* you installed StackScope: **reload them once**. Otherwise the extension can't see the response headers from the original page load and has to re-request the page (still works, a little less accurate).
+> Tabs that were already open *before* you installed StackScope: **reload them once**. Server headers are only captured when a page loads, so until then the popup shows everything else and asks you to reload. (StackScope never re-requests a page on its own — a second visit could use up one-time links like magic logins or password resets.)
 
 ### Updating to a new version
 

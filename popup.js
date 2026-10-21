@@ -52,17 +52,11 @@ async function getHeaders(tab) {
   try {
     const key = `tab:${tab.id}`;
     const rec = (await chrome.storage.session.get(key))[key];
-    if (rec && new URL(rec.url).origin === origin) return { headers: rec.headers, source: 'captured when the page loaded' };
+    if (rec && new URL(rec.url).origin === origin) return { headers: rec.headers, captured: true, source: 'captured when the page loaded' };
   } catch {}
-  // Page was loaded before the extension was installed: request it again ourselves.
-  try {
-    const res = await fetch(tab.url, { credentials: 'include', cache: 'no-store' });
-    const headers = {};
-    res.headers.forEach((v, k) => { headers[k.toLowerCase()] = v; });
-    return { headers, source: 'fetched just now — reload the page for best results' };
-  } catch {
-    return { headers: {}, source: 'unavailable' };
-  }
+  // Never re-request the page ourselves: a second visit can use up one-time links
+  // (magic logins, password resets, email confirmations) or repeat an action.
+  return { headers: {}, captured: false, source: 'not captured — reload the page' };
 }
 
 async function scan() {
@@ -70,6 +64,7 @@ async function scan() {
   $('sections').replaceChildren(el('div', 'loading', 'Scanning…'));
   $('headline').textContent = '';
   $('source').textContent = '';
+  $('notice').hidden = true;
 
   if (!tab || !/^https?:/.test(tab.url || '')) {
     $('host').textContent = 'Not a website';
@@ -98,7 +93,8 @@ async function scan() {
   analyzeCookies(cookies.map((c) => c.name), store.add);
   applyImplications(store);
 
-  render([...store.map.values()]);
+  render([...store.map.values()], hdr.captured);
+  $('notice').hidden = hdr.captured;
   $('source').textContent = `Response headers: ${hdr.source}${notes.length ? ' · ' + notes.join(' · ') : ''}`;
 }
 
@@ -108,7 +104,7 @@ function sortKey(t) {
   return (sec ? sec.cats.indexOf(cat) : 99) * 10 + (t.implied ? 1 : 0);
 }
 
-function render(techs) {
+function render(techs, headersCaptured) {
   const bySection = new Map(SECTIONS.map((s) => [s.id, []]));
   const other = [];
   for (const t of techs) {
@@ -129,7 +125,8 @@ function render(techs) {
     const section = el('section', `section section-${s.id}`);
     section.append(el('h2', null, s.title));
     if (!list.length) {
-      section.append(el('div', 'empty', s.empty));
+      const needsHeaders = !headersCaptured && (s.id === 'backend' || s.id === 'infra');
+      section.append(el('div', 'empty', needsHeaders ? 'Unknown until the page is reloaded (see the note above).' : s.empty));
     } else {
       const ul = el('ul', 'techs');
       for (const t of list) ul.append(renderTech(t));
